@@ -22,10 +22,14 @@ This is a whatspp clone with features like one to one messaging, read receipts, 
 
 ## Features
 
-[x] Authentication done with Firebase Auth
-[x] Realtime messaging with Firebase Realtime Database. Users maintained with Firestore.
-[x] Single tick delivery, double tick for message receiving, and blue double tick for message read like Whatsapp.
-[x] Shows users who are online, realtime.
+1. Authentication done with Firebase Auth
+2. Realtime messaging with Firebase Realtime Database. Users maintained with Firestore.
+3. Single tick delivery, double tick for message receiving, and blue double tick for message read like Whatsapp.
+4. Shows users who are online, realtime.
+
+## Test credentials
+email: test@gmail.com
+password: 123456
 
 ## To Run and test locally
 
