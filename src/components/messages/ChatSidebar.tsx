@@ -7,16 +7,26 @@ import { database } from "../../config/firebaseConfig";
 import { useEffect } from "react";
 import { ref, onDisconnect, onValue, onChildChanged } from "firebase/database";
 
+interface IUser {
+  key: string | null;
+  userDetails: {
+    online: {
+      online: boolean;
+      displayName: string;
+    };
+  };
+}
+
 export const ChatSidebar = () => {
   const { currentUser } = useContext(AuthContext);
-  const [userFriends, setUserFriends] = useState([]);
+  const [userFriends, setUserFriends] = useState<IUser[]>([]);
 
   useEffect(() => {
     const usersRef = ref(database, "users");
 
     // const usersRef = ref(database, "users");
     onValue(usersRef, (snapshot) => {
-      let users = [];
+      let users: IUser[] = [];
       snapshot.forEach((childSnapshot) => {
         if (childSnapshot.key !== currentUser.uid) {
           users.push({

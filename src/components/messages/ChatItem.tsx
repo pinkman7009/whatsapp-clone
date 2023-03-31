@@ -1,16 +1,16 @@
 import { BiUser } from "react-icons/bi";
 import { Link } from "react-router-dom";
-import { User } from "../../types";
 import { ref } from "firebase/database";
 import { useEffect } from "react";
 import { database } from "../../config/firebaseConfig";
 
 interface IChatItemProps {
-  user: User;
-  status: "online" | "offline";
+  displayName: string;
+  id: string | null;
+  status: boolean;
 }
 
-export const ChatItem = ({ displayName, id, status }) => {
+export const ChatItem = ({ displayName, id, status }: IChatItemProps) => {
   return (
     <Link to={`/${id}`}>
       <div className="h-32 w-full bg-white flex items-center border-b-2 hover:bg-gray-200 cursor-pointer">

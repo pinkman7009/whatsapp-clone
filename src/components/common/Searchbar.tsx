@@ -1,7 +1,15 @@
-import { User } from "../../types";
+interface IUser {
+  key: string | null;
+  userDetails: {
+    online: {
+      online: boolean;
+      displayName: string;
+    };
+  };
+}
 
 interface ISearchbarProps {
-  users: User[];
+  users: IUser[];
 }
 export const Searchbar = ({ users }: ISearchbarProps) => {
   return (

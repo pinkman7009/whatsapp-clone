@@ -2,8 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { doc, updateDoc } from "firebase/firestore";
-import { auth, db, database } from "../config/firebaseConfig";
+import { auth, database } from "../config/firebaseConfig";
 import { onDisconnect, onValue, ref, set } from "firebase/database";
 
 const LoginPage = () => {
@@ -12,7 +11,7 @@ const LoginPage = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
-  const changeMsgStatusToDelivered = (userID) => {
+  const handleChangeToDeliveredStatus = (userID: string) => {
     onValue(ref(database, ".info/connected"), (snapshot) => {
       if (snapshot.val()) {
         onValue(ref(database, `chats/${userID}`), (sender) => {
@@ -20,16 +19,16 @@ const LoginPage = () => {
           sender.forEach((s) => {
             onValue(ref(database, `chats/${userID}/${s.key}`), (messages) => {
               messages.forEach((msg) => {
-                if (msg.val().messageInfo == 0) {
+                if (msg.val().messageStatus == 0) {
                   const data = msg.val();
                   const messageID = msg.key;
                   const updateRef = ref(database, `chats/${userID}/${s.key}/${messageID}`);
                   set(updateRef, {
+                    messageStatus: 1,
                     createdAt: data.createdAt,
                     senderName: data.senderName,
                     senderID: data.senderID,
                     text: data.text,
-                    messageInfo: 1,
                   }).catch(alert);
                 }
               });
@@ -46,7 +45,7 @@ const LoginPage = () => {
     try {
       const res = await signInWithEmailAndPassword(auth, email, password);
 
-      changeMsgStatusToDelivered(res.user.uid);
+      handleChangeToDeliveredStatus(res.user.uid);
 
       const onlineStatusRef = ref(database, ".info/connected");
 

@@ -1,24 +1,28 @@
 import { useContext } from "react";
 import { AuthContext } from "../../context/auth";
 import { Message } from "../../types";
+import { AiOutlineCheck } from "react-icons/ai";
+import { BsCheck2All } from "react-icons/bs";
 
 interface IMessageItemProps {
   message: Message;
 }
 
-export const MessageItem = ({ message }) => {
+export const MessageItem = ({ message }: IMessageItemProps) => {
   const { currentUser } = useContext(AuthContext);
 
-  const { senderName, senderID, text, messageInfo, createdAt } = message;
+  const { senderID, text, messageStatus } = message;
 
-  const CheckMessageInfo = (msgState) => {
-    switch (msgState) {
+  console.log({ senderID, currentUser, messageStatus });
+
+  const checkMessageStatusIcon = (messageStatus: 0 | 1 | 2) => {
+    switch (messageStatus) {
       case 0:
-        return "https://img.icons8.com/material-outlined/24/000000/checkmark--v1.png";
+        return <AiOutlineCheck />;
       case 1:
-        return "https://img.icons8.com/fluency-systems-regular/48/000000/double-tick.png";
+        return <BsCheck2All />;
       case 2:
-        return "https://img.icons8.com/color-glass/48/000000/double-tick.png";
+        return <BsCheck2All className="text-teal-600" />;
     }
   };
 
@@ -29,10 +33,8 @@ export const MessageItem = ({ message }) => {
           senderID === currentUser.uid ? "bg-primary-light" : "bg-white"
         } w-auto inline-block p-6 rounded-md m-6 border-2 border-black`}
       >
-        {message.text}
-        {message.senderID === currentUser.uid && (
-          <img className="message-state" src={CheckMessageInfo(message.messageInfo)} />
-        )}
+        <p>{text}</p>
+        {senderID === currentUser.uid && checkMessageStatusIcon(messageStatus)}
       </div>
     </div>
   );

@@ -1,23 +1,12 @@
 import { useState, useEffect, useContext } from "react";
 import { PrimaryButton } from "../common/Buttons";
 import { MessageItem } from "./MessageItem";
+import { Message } from "../../types";
 
 import { AuthContext } from "../../context/auth";
 import { signOut } from "firebase/auth";
-import { auth, db, database } from "../../config/firebaseConfig";
-import { doc, updateDoc } from "firebase/firestore";
-import {
-  ref,
-  onValue,
-  orderByChild,
-  update,
-  set,
-  serverTimestamp,
-  query,
-  equalTo,
-  get,
-  orderByValue,
-} from "firebase/database";
+import { auth, database } from "../../config/firebaseConfig";
+import { ref, onValue, orderByChild, update, set, query } from "firebase/database";
 import { useParams } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 
@@ -26,38 +15,10 @@ export const MessageBox = () => {
   const params = useParams();
 
   const [currentMessage, setCurrentMessage] = useState("");
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [chatUsername, setChatUsername] = useState("");
 
   const userID = params.userID;
-
-  const changeMsgStatusToReceived = (userID) => {
-    onValue(ref(database, ".info/connected"), (snapshot) => {
-      if (snapshot.val()) {
-        onValue(ref(database, `chats/${userID}`), (sender) => {
-          console.log({ sender });
-          sender.forEach((s) => {
-            onValue(ref(database, `chats/${userID}/${s.key}`), (messages) => {
-              messages.forEach((msg) => {
-                if (msg.val().messageInfo !== 2) {
-                  const data = msg.val();
-                  const messageID = msg.key;
-                  const updateRef = ref(database, `chats/${userID}/${s.key}/${messageID}`);
-                  set(updateRef, {
-                    createdAt: data.createdAt,
-                    senderName: data.senderName,
-                    senderID: data.senderID,
-                    text: data.text,
-                    messageInfo: 2,
-                  }).catch(alert);
-                }
-              });
-            });
-          });
-        });
-      }
-    });
-  };
 
   useEffect(() => {
     if (userID) {
@@ -67,28 +28,23 @@ export const MessageBox = () => {
       const chatsQuery1 = query(chatsRef1, orderByChild("createdAt"));
 
       onValue(chatsQuery1, (snapshot) => {
-        const msgs = [];
+        const msgs: Message[] = [];
         snapshot.forEach((childSnapshot) => {
           msgs.push(childSnapshot.val());
         });
-        console.log({ msgs });
         setMessages(msgs);
       });
 
       const chatsRef2 = ref(database, `chats/${UID}/${userID}`);
       onValue(chatsRef2, (snapshot) => {
         snapshot.forEach((child) => {
-          let updatedMessageInfoValue;
-          console.log(child.val());
-          if (child.val().messageInfo !== 2) {
+          if (child.val().messageStatus !== 2) {
             const messageID = child.key;
             const updateRef = ref(database, `chats/${UID}/${userID}/${messageID}`);
-            update(updateRef, { messageInfo: 2 }).catch(alert);
+            update(updateRef, { messageStatus: 2 }).catch(alert);
           }
         });
       });
-
-      // changeMsgStatusToReceived(currentUser.uid);
 
       const usersRef = ref(database, `users/${userID}`);
       onValue(usersRef, (snapshot) => {
@@ -116,7 +72,7 @@ export const MessageBox = () => {
 
       set(chatsRef2, {
         text: currentMessage,
-        messageInfo: 0,
+        messageStatus: 0,
         senderID: uid,
         senderName: displayName,
         createdAt: {
@@ -126,7 +82,7 @@ export const MessageBox = () => {
 
       setCurrentMessage("");
     } else {
-      alert("Enter a message");
+      alert("Please enter a message");
       return;
     }
   };
@@ -153,7 +109,7 @@ export const MessageBox = () => {
       </div>
       <div className="h-[75%] overflow-auto">
         {messages.map((message) => (
-          <MessageItem message={message} />
+          <MessageItem key={message.createdAt} message={message} />
         ))}
       </div>
       <div className="bg-gray-300 w-full p-3 flex justify-between absolute bottom-0">
