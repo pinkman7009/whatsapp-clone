@@ -15,7 +15,6 @@ const LoginPage = () => {
     onValue(ref(database, ".info/connected"), (snapshot) => {
       if (snapshot.val()) {
         onValue(ref(database, `chats/${userID}`), (sender) => {
-          console.log({ sender });
           sender.forEach((s) => {
             onValue(ref(database, `chats/${userID}/${s.key}`), (messages) => {
               messages.forEach((msg) => {

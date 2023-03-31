@@ -8,11 +8,7 @@ import RegisterPage from "./pages/RegisterPage";
 import { ChildrenProps as ProtectedRouteProps } from "./types";
 
 function App() {
-  const isUserLoggedIn = true;
-
   const { currentUser } = useContext(AuthContext);
-
-  console.log({ currentUser });
 
   const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     if (!currentUser) {

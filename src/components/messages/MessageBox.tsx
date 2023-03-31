@@ -9,11 +9,13 @@ import { auth, database } from "../../config/firebaseConfig";
 import { ref, onValue, orderByChild, update, set, query } from "firebase/database";
 import { useParams } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
+import { BiUser } from "react-icons/bi";
 
 export const MessageBox = () => {
   const { currentUser } = useContext(AuthContext);
   const params = useParams();
 
+  const [noChatsOpen, setNoChatsOpen] = useState(true);
   const [currentMessage, setCurrentMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [chatUsername, setChatUsername] = useState("");
@@ -22,6 +24,7 @@ export const MessageBox = () => {
 
   useEffect(() => {
     if (userID) {
+      setNoChatsOpen(false);
       const UID = currentUser.uid;
 
       const chatsRef1 = ref(database, `chats/${userID}/${UID}`);
@@ -90,7 +93,12 @@ export const MessageBox = () => {
   return (
     <div className="h-full w-3/4 bg-[url('/public/chat-wallpaper.jpg')] relative">
       <div className="h-[10%] w-full bg-gray-100 p-3 flex justify-between items-center">
-        <p className="font-bold text-lg">{chatUsername}</p>
+        <div className="flex items-center">
+          <div className="mx-3 rounded-full bg-gray-200 flex justify-center items-center h-10 w-10 ">
+            <BiUser className="w-6 h-6" />
+          </div>
+          <p className="font-bold text-lg mx-6">{chatUsername}</p>
+        </div>
         <div className="flex items-center">
           <p className="text-lg mr-6">Hi, {currentUser.displayName}</p>
           <PrimaryButton
@@ -107,20 +115,28 @@ export const MessageBox = () => {
           />
         </div>
       </div>
-      <div className="h-[75%] overflow-auto">
-        {messages.map((message) => (
-          <MessageItem key={message.createdAt} message={message} />
-        ))}
-      </div>
-      <div className="bg-gray-300 w-full p-3 flex justify-between absolute bottom-0">
-        <textarea
-          placeholder="Write a message...."
-          className="bg-white rounded-md p-3 w-full mr-3"
-          value={currentMessage}
-          onChange={(e) => setCurrentMessage(e.target.value)}
-        ></textarea>
-        <button onClick={sendMessage}>Send</button>
-      </div>
+      {noChatsOpen ? (
+        <div className="flex justify-center items-center w-full h-full">
+          <p className="text-2xl  rounded-lg border-primary border-2 p-3">You have no chats open now!</p>
+        </div>
+      ) : (
+        <>
+          <div className="h-[75%] overflow-auto">
+            {messages.map((message) => (
+              <MessageItem key={message.createdAt} message={message} />
+            ))}
+          </div>
+          <div className="bg-gray-300 w-full p-3 flex justify-between absolute bottom-0">
+            <textarea
+              placeholder="Write a message...."
+              className="bg-white rounded-md p-3 w-full mr-3"
+              value={currentMessage}
+              onChange={(e) => setCurrentMessage(e.target.value)}
+            ></textarea>
+            <button onClick={sendMessage}>Send</button>
+          </div>
+        </>
+      )}
     </div>
   );
 };

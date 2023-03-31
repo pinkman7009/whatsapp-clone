@@ -13,8 +13,6 @@ export const MessageItem = ({ message }: IMessageItemProps) => {
 
   const { senderID, text, messageStatus } = message;
 
-  console.log({ senderID, currentUser, messageStatus });
-
   const checkMessageStatusIcon = (messageStatus: 0 | 1 | 2) => {
     switch (messageStatus) {
       case 0:
