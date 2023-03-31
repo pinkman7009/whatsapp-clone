@@ -18,7 +18,6 @@ export const ChatSidebar = () => {
     onValue(usersRef, (snapshot) => {
       let users = [];
       snapshot.forEach((childSnapshot) => {
-        console.log(childSnapshot.val());
         if (childSnapshot.key !== currentUser.uid) {
           users.push({
             key: childSnapshot.key,
@@ -26,7 +25,6 @@ export const ChatSidebar = () => {
           });
         }
       });
-      console.log({ usersfields: users });
       setUserFriends(users);
     });
 
@@ -34,13 +32,10 @@ export const ChatSidebar = () => {
     // onDisconnect(dbRef).set({ name: currentUser.displayName, onlineStatus: false });
   }, []);
 
-  console.log({ userFriends });
-
   return (
     <div className="h-full w-1/4 bg-white">
       <Searchbar users={userFriends} />
       {userFriends.map((user) => {
-        console.log({ user });
         return (
           <ChatItem
             key={user.key}

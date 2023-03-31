@@ -12,24 +12,25 @@ const LoginPage = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
-  const changeMsgStatusToDeliver = (userID) => {
-    const dbRef = ref(database, ".info/connected");
-    onValue(dbRef, (snapshot) => {
+  const changeMsgStatusToDelivered = (userID) => {
+    onValue(ref(database, ".info/connected"), (snapshot) => {
       if (snapshot.val()) {
-        const ref2 = ref(database, `chats/${userID}`);
-        onvalue(ref2, (sender) => {
+        onValue(ref(database, `chats/${userID}`), (sender) => {
+          console.log({ sender });
           sender.forEach((s) => {
-            database.ref(`chats/${userID}/${s.key}`).on("value", (messages) => {
+            onValue(ref(database, `chats/${userID}/${s.key}`), (messages) => {
               messages.forEach((msg) => {
                 if (msg.val().messageInfo == 0) {
                   const data = msg.val();
-                  database.ref(`chats/${userID}/${s.key}/${msg.key}`).set({
+                  const messageID = msg.key;
+                  const updateRef = ref(database, `chats/${userID}/${s.key}/${messageID}`);
+                  set(updateRef, {
                     createdAt: data.createdAt,
                     senderName: data.senderName,
                     senderID: data.senderID,
                     text: data.text,
                     messageInfo: 1,
-                  });
+                  }).catch(alert);
                 }
               });
             });
@@ -44,6 +45,8 @@ const LoginPage = () => {
 
     try {
       const res = await signInWithEmailAndPassword(auth, email, password);
+
+      changeMsgStatusToDelivered(res.user.uid);
 
       const onlineStatusRef = ref(database, ".info/connected");
 
@@ -60,8 +63,6 @@ const LoginPage = () => {
           });
         }
       });
-      // const dbRef = ref(database, `users/${res.user.uid}`);
-      // set(dbRef, { name: res.user.displayName, onlineStatus: true });
 
       navigate("/");
     } catch (err: any) {

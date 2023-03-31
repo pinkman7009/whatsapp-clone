@@ -27,153 +27,109 @@ export const MessageBox = () => {
 
   const [currentMessage, setCurrentMessage] = useState("");
   const [messages, setMessages] = useState([]);
-  const [roomID, setRoomID] = useState("");
   const [chatUsername, setChatUsername] = useState("");
 
   const userID = params.userID;
 
-  const getExistingChatID = (userID) => {
-    const { uid } = currentUser;
-    const queryRef = ref(database, "chats");
-
-    // queryRef.once()
-  };
-  const createNewChat = (user1ID, user2ID) => {
-    const roomID = uuidv4();
-
-    const chatRef = ref(database, `chats/${roomID}/participants`);
-    set(chatRef, {
-      [user1ID]: true,
-      [user2ID]: true,
-      createdAt: serverTimestamp(),
-    })
-      .then(() => {
-        console.log("new chat created");
-      })
-      .catch((error) => {
-        console.log("error");
-      });
-
-    console.log({ chatRef });
-
-    return roomID;
-  };
-
-  const sendMessage = () => {
-    const messageRef = ref(database, `/chats/${roomID}/messages`);
-
-    set(messageRef, {
-      sender: currentUser.uid,
-      message: currentMessage,
-      createdAt: serverTimestamp(),
-    });
-  };
-
-  const getChatHistory = (roomID) => {
-    const messageRef = ref(database, "chats/" + roomID + "/messages", orderByValue("createdAt"));
-
-    let messageList = [];
-    onValue(messageRef, (snapshot) => {
-      snapshot.forEach((childSnapshot) => {
-        messageList.push({
-          id: childSnapshot.key,
-          sender: childSnapshot.val().sender,
-          message: childSnapshot.val().message,
-          createdAt: childSnapshot.val().createdAt,
+  const changeMsgStatusToReceived = (userID) => {
+    onValue(ref(database, ".info/connected"), (snapshot) => {
+      if (snapshot.val()) {
+        onValue(ref(database, `chats/${userID}`), (sender) => {
+          console.log({ sender });
+          sender.forEach((s) => {
+            onValue(ref(database, `chats/${userID}/${s.key}`), (messages) => {
+              messages.forEach((msg) => {
+                if (msg.val().messageInfo !== 2) {
+                  const data = msg.val();
+                  const messageID = msg.key;
+                  const updateRef = ref(database, `chats/${userID}/${s.key}/${messageID}`);
+                  set(updateRef, {
+                    createdAt: data.createdAt,
+                    senderName: data.senderName,
+                    senderID: data.senderID,
+                    text: data.text,
+                    messageInfo: 2,
+                  }).catch(alert);
+                }
+              });
+            });
+          });
         });
-      });
-      console.log({ messageList });
-      setMessages(messageList);
-    });
-  };
-
-  const getExistingRoomID = (user1ID, user2ID) => {
-    console.log({ user1ID, user2ID });
-    const chatsRef = ref(database, `chats/participants/${user1ID}`);
-    const chatsQuery = query(chatsRef, orderByValue("createdAt"), equalTo(true));
-
-    return get(chatsQuery).then((snapshot) => {
-      console.log({ snapshot });
-      let roomID = null;
-      snapshot.forEach((chatSnapshot) => {
-        const participants = chatSnapshot.val().participants;
-        console.log("hi");
-        console.log({ participants });
-        if (participants[user2ID]) {
-          roomId = chatSnapshot.key;
-        }
-      });
-
-      console.log({ roomID });
-      return roomID;
+      }
     });
   };
 
   useEffect(() => {
-    if (currentUser.uid && userID) {
-      console.log(currentUser.uid, userID);
-      const existingRoomID = getExistingRoomID(currentUser.uid, userID);
+    if (userID) {
+      const UID = currentUser.uid;
 
-      if (existingRoomID) {
-        getChatHistory(existingRoomID);
-        setRoomID(existingRoomID);
-      } else {
-        const newRoomID = createNewChat(currentUser.uid, userID);
-        setRoomID(newRoomID);
-      }
+      const chatsRef1 = ref(database, `chats/${userID}/${UID}`);
+      const chatsQuery1 = query(chatsRef1, orderByChild("createdAt"));
+
+      onValue(chatsQuery1, (snapshot) => {
+        const msgs = [];
+        snapshot.forEach((childSnapshot) => {
+          msgs.push(childSnapshot.val());
+        });
+        console.log({ msgs });
+        setMessages(msgs);
+      });
+
+      const chatsRef2 = ref(database, `chats/${UID}/${userID}`);
+      onValue(chatsRef2, (snapshot) => {
+        snapshot.forEach((child) => {
+          let updatedMessageInfoValue;
+          console.log(child.val());
+          if (child.val().messageInfo !== 2) {
+            const messageID = child.key;
+            const updateRef = ref(database, `chats/${UID}/${userID}/${messageID}`);
+            update(updateRef, { messageInfo: 2 }).catch(alert);
+          }
+        });
+      });
+
+      // changeMsgStatusToReceived(currentUser.uid);
+
+      const usersRef = ref(database, `users/${userID}`);
+      onValue(usersRef, (snapshot) => {
+        setChatUsername(snapshot.val().online.displayName);
+      });
     }
-  }, [currentUser.uid, userID]);
+  }, [userID]);
 
-  // useEffect(() => {
-  //   if (userID) {
-  //     const UID = currentUser.uid;
+  const sendMessage = () => {
+    const messageID = uuidv4();
 
-  //     const chatref = query(ref(database, `chats/${userID}/${UID}`), orderByChild("createdAt"));
-  //     onValue(chatref, (snapshot) => {
-  //       let messageList = [];
-  //       snapshot.forEach((childSnapshot) => {
-  //         messageList.push(childSnapshot.val());
-  //       });
-  //       console.log({ messageList });
-  //       setMessages(messageList);
-  //     });
+    if (currentMessage !== "") {
+      const { uid, displayName } = currentUser;
+      const chatsRef1 = ref(database, `chats/${uid}/${userID}/${messageID}`);
+      const chatsRef2 = ref(database, `chats/${userID}/${uid}/${messageID}`);
 
-  //     const chatref2 = ref(database, `/chats/${UID}/${userID}`);
-  //     onValue(chatref2, (snapshot) => {
-  //       snapshot.forEach((child) => {
-  //         if (child.val().messageInfo != 2) {
-  //           const reference = ref(database, `chats/${UID}/${userID}/${child.key}`);
-  //           update(reference, { messageInfo: 2 });
-  //         }
-  //       });
-  //     });
+      set(chatsRef1, {
+        text: currentMessage,
+        senderID: uid,
+        senderName: displayName,
+        createdAt: {
+          ".sv": "timestamp",
+        },
+      }).catch(alert);
 
-  //     const ref3 = ref(database, `/users/${userID}`);
+      set(chatsRef2, {
+        text: currentMessage,
+        messageInfo: 0,
+        senderID: uid,
+        senderName: displayName,
+        createdAt: {
+          ".sv": "timestamp",
+        },
+      }).catch(alert);
 
-  //     onValue(ref3, (snapshot) => {
-  //       setChatUsername(snapshot.val().name);
-  //     });
-  //   }
-  // }, []);
-
-  // const sendMessage = () => {
-  //   if (currentMessage !== "") {
-  //     const { uid, displayName } = currentUser;
-
-  //     set(ref(database, `/chats/${userID}/${uid}/${roomID}`), {
-  //       text: currentMessage,
-  //       senderID: uid,
-  //       senderName: displayName,
-  //       messageInfo: 0,
-  //       createdAt: serverTimestamp(),
-  //     });
-
-  //     setCurrentMessage("");
-  //   } else {
-  //     alert("Enter a message");
-  //     return;
-  //   }
-  // };
+      setCurrentMessage("");
+    } else {
+      alert("Enter a message");
+      return;
+    }
+  };
 
   return (
     <div className="h-full w-3/4 bg-[url('/public/chat-wallpaper.jpg')] relative">
@@ -195,7 +151,7 @@ export const MessageBox = () => {
           />
         </div>
       </div>
-      <div className="h-[75%]">
+      <div className="h-[75%] overflow-auto">
         {messages.map((message) => (
           <MessageItem message={message} />
         ))}
