@@ -25,7 +25,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
 
   useEffect(() => {
     const cleanup = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
+      setCurrentUser(user as any);
     });
 
     return () => {

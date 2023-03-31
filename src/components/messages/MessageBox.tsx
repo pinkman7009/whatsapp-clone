@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useRef } from "react";
 import { PrimaryButton } from "../common/Buttons";
 import { MessageItem } from "./MessageItem";
 import { Message } from "../../types";
@@ -14,6 +14,7 @@ import { BiUser } from "react-icons/bi";
 export const MessageBox = () => {
   const { currentUser } = useContext(AuthContext);
   const params = useParams();
+  const endOfMessageRef = useRef<null | HTMLDivElement>(null);
 
   const [noChatsOpen, setNoChatsOpen] = useState(true);
   const [currentMessage, setCurrentMessage] = useState("");
@@ -90,6 +91,17 @@ export const MessageBox = () => {
     }
   };
 
+  const scrollToBottom = () => {
+    endOfMessageRef?.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
   return (
     <div className="h-full w-3/4 bg-[url('/public/chat-wallpaper.jpg')] relative">
       <div className="h-[10%] w-full bg-gray-100 p-3 flex justify-between items-center">
@@ -125,6 +137,7 @@ export const MessageBox = () => {
             {messages.map((message) => (
               <MessageItem key={message.createdAt} message={message} />
             ))}
+            <div ref={endOfMessageRef}></div>
           </div>
           <div className="bg-gray-300 w-full p-3 flex justify-between absolute bottom-0">
             <textarea
