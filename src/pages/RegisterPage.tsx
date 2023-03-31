@@ -1,9 +1,10 @@
 import React, { useState, useContext } from "react";
 import { Link } from "react-router-dom";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { auth, db } from "../config/firebaseConfig";
+import { auth, db, database } from "../config/firebaseConfig";
 import { doc, setDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
+import { onDisconnect, onValue, ref, set } from "firebase/database";
 
 import { Container } from "../components/common/Container";
 import { User } from "../types/users";
@@ -52,6 +53,22 @@ const RegisterPage = () => {
         });
 
         await setDoc(doc(db, "userChats", res.user.uid), {});
+
+        const onlineStatusRef = ref(database, ".info/connected");
+
+        onValue(onlineStatusRef, (snapshot) => {
+          if (snapshot.val()) {
+            const userOnlineStatusRef = ref(database, "users/" + res.user.uid + "/online");
+            set(userOnlineStatusRef, {
+              displayName: res.user.displayName,
+              online: true,
+            });
+            onDisconnect(userOnlineStatusRef).set({
+              displayName: res.user.displayName,
+              online: false,
+            });
+          }
+        });
 
         navigate("/");
       } catch (err: any) {
