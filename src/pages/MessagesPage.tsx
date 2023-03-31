@@ -6,7 +6,7 @@ const MessagesPage = () => {
     <div className="h-screen flex items-center justify-center bg-primary">
       <div className="h-[800px] w-full flex">
         <ChatSidebar />
-        <MessageBox chatRecipient={"Rohan Das"} />
+        <MessageBox />
       </div>
     </div>
   );

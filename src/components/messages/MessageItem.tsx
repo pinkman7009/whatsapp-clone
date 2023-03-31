@@ -10,7 +10,7 @@ export const MessageItem = ({ message }: IMessageItemProps) => {
       <div
         className={`${
           message.name === "Soumik Chaudhuri" ? "bg-primary-light" : "bg-white"
-        } w-1/4 p-6 rounded-md m-6 border-2 border-black`}
+        } w-auto inline-block p-6 rounded-md m-6 border-2 border-black`}
       >
         {message.message}
       </div>

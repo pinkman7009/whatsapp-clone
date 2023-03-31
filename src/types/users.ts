@@ -1,5 +1,6 @@
 export interface User {
-  id: number;
-  name: string;
+  uid?: string;
+  displayName: string;
   email: string;
+  status?: "online" | "offline";
 }
