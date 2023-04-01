@@ -27,6 +27,10 @@ This is a whatspp clone with features like one to one messaging, read receipts, 
 3. Single tick delivery, double tick for message receiving, and blue double tick for message read like Whatsapp.
 4. Shows users who are online, realtime.
 
+## Idea for database structure in Firebase RTDB taken from 
+
+https://ngengesenior.medium.com/database-structure-of-one-to-one-chat-app-with-firebase-93f813184dfe
+
 ## Test credentials
 email: test@gmail.com
 password: 123456
